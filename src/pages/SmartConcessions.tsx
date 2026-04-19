@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface FoodItem {
   id: number;
@@ -33,7 +33,19 @@ const MENU_ITEMS: FoodItem[] = [
 const CATEGORIES = ['All Items', 'Hot Food', 'Beverages', 'Snacks'];
 
 export default function SmartConcessions() {
-  const [cart, setCart] = useState<Record<number, number>>({});
+  const [cart, setCart] = useState<Record<number, number>>(() => {
+    try {
+      const saved = localStorage.getItem('kinetic_cart');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kinetic_cart', JSON.stringify(cart));
+  }, [cart]);
+
   const [activeCategory, setActiveCategory] = useState('All Items');
   const [showCheckout, setShowCheckout] = useState(false);
 

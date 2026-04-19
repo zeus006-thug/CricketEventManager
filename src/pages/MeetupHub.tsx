@@ -25,11 +25,21 @@ const BOT_REPLIES = [
 ];
 
 export default function MeetupHub() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: 1, sender: 'Dave', text: "Mate, that was never a no-ball. Umpire needs glasses! 👓", time: '8:42 PM', isOwn: false, avatar: DAVE_AVATAR, color: 'secondary' },
-    { id: 2, sender: 'You', text: "I'm going for another round. Who wants what? 🍻", time: '8:45 PM', isOwn: true, color: 'primary' },
-    { id: 3, sender: 'Sarah T.', text: "Get me a pie! I'm stuck in the merch line.", time: '8:47 PM', isOwn: false, avatar: SARAH_AVATAR, color: 'tertiary' },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem('kinetic_chat');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      { id: 1, sender: 'Dave', text: "Mate, that was never a no-ball. Umpire needs glasses! 👓", time: '8:42 PM', isOwn: false, avatar: DAVE_AVATAR, color: 'secondary' },
+      { id: 2, sender: 'You', text: "I'm going for another round. Who wants what? 🍻", time: '8:45 PM', isOwn: true, color: 'primary' },
+      { id: 3, sender: 'Sarah T.', text: "Get me a pie! I'm stuck in the merch line.", time: '8:47 PM', isOwn: false, avatar: SARAH_AVATAR, color: 'tertiary' },
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kinetic_chat', JSON.stringify(messages));
+  }, [messages]);
   const [inputText, setInputText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 

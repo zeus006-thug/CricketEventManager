@@ -1,7 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function TicketLogin() {
+  const [mobile, setMobile] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mobile && password) {
+      // Simulate real-world authentication handling
+      navigate('/dashboard');
+    }
+  };
+
   return (
     <div className="bg-background text-on-surface min-h-screen relative w-full overflow-hidden flex items-center justify-center">
       
@@ -25,13 +37,14 @@ export default function TicketLogin() {
 <h2 className="font-headline text-2xl font-bold text-on-surface">Ticket Access</h2>
 <p className="font-body text-sm text-on-surface-variant">Enter your details to load your matchday pass.</p>
 </div>
-<div className="flex flex-col gap-6 w-full">
+
+<form onSubmit={handleLogin} className="flex flex-col gap-6 w-full">
 
 <div className="flex flex-col gap-2 relative group">
 <label className="font-label text-sm font-medium text-secondary" htmlFor="mobile">Mobile Number</label>
 <div className="relative flex items-center">
 <span className="material-symbols-outlined absolute left-4 text-on-surface-variant group-focus-within:text-primary transition-colors">smartphone</span>
-<input className="w-full bg-surface-container-lowest text-on-surface font-body text-base px-12 py-4 rounded-lg border-b-2 border-transparent focus:border-b-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="mobile" placeholder="+1 (555) 000-0000" type="tel"/>
+<input className="w-full bg-surface-container-lowest text-on-surface font-body text-base px-12 py-4 rounded-lg border-b-2 border-transparent focus:border-b-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="mobile" placeholder="+1 (555) 000-0000" type="tel" required value={mobile} onChange={e => setMobile(e.target.value)} />
 </div>
 </div>
 
@@ -39,15 +52,15 @@ export default function TicketLogin() {
 <label className="font-label text-sm font-medium text-secondary" htmlFor="password">Ticket ID / Password</label>
 <div className="relative flex items-center">
 <span className="material-symbols-outlined absolute left-4 text-on-surface-variant group-focus-within:text-primary transition-colors">lock</span>
-<input className="w-full bg-surface-container-lowest text-on-surface font-body text-base px-12 py-4 rounded-lg border-b-2 border-transparent focus:border-b-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="password" name="password" placeholder="Enter Reference / Password" type="password" autoComplete="current-password"/>
+<input className="w-full bg-surface-container-lowest text-on-surface font-body text-base px-12 py-4 rounded-lg border-b-2 border-transparent focus:border-b-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="password" name="password" placeholder="Enter Reference / Password" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} />
 </div>
 </div>
 
-<Link to="/dashboard" className="w-full mt-4 bg-primary text-on-primary font-headline font-bold text-lg py-4 rounded-xl shadow-[0_0_24px_rgba(165,255,184,0.15)] hover:shadow-[0_0_32px_rgba(165,255,184,0.25)] hover:bg-primary-container transition-all flex items-center justify-center gap-2 no-underline">
+<button type="submit" className="w-full mt-4 bg-primary text-on-primary font-headline font-bold text-lg py-4 rounded-xl shadow-[0_0_24px_rgba(165,255,184,0.15)] hover:shadow-[0_0_32px_rgba(165,255,184,0.25)] hover:bg-primary-container transition-all flex items-center justify-center gap-2 no-underline cursor-pointer">
 <span>ENTER ARENA</span>
 <span className="material-symbols-outlined font-bold" style={{ fontVariationSettings: "'wght' 700" }}>arrow_forward</span>
-</Link>
-</div>
+</button>
+</form>
 
 <div className="text-center mt-4">
 <a className="font-body text-sm text-secondary hover:text-primary transition-colors cursor-pointer" onClick={(e) => { e.preventDefault(); alert("Please check your email or SMS for the ticket reference sent by Kinetic Arena."); }}>Need help finding your ticket?</a>

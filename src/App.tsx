@@ -7,6 +7,8 @@ import VenueNavigator from './pages/VenueNavigator';
 import MeetupHub from './pages/MeetupHub';
 import SmartConcessions from './pages/SmartConcessions';
 
+import NotFound from './pages/NotFound';
+
 function App() {
   return (
     <BrowserRouter>
@@ -20,7 +22,7 @@ function App() {
           <Route path="/meetup" element={<MeetupHub />} />
           <Route path="/concessions" element={<SmartConcessions />} />
         </Route>
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
