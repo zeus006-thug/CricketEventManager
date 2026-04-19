@@ -1,0 +1,55 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--color-background);
+  }
+  h1, h2, h3, h4, h5, h6, .font-headline {
+    font-family: 'Lexend', sans-serif;
+  }
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+}
+
+input:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+
+body {
+  min-height: max(884px, 100dvh);
+}
+
+/* Sidebar content offset - bulletproof approach */
+@media (min-width: 768px) {
+  .sidebar-offset {
+    margin-left: 288px;
+  }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.glass-panel {
+  background: rgba(30, 32, 33, 0.6);
+  backdrop-filter: blur(16px);
+}
