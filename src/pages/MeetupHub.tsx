@@ -1,21 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react';
+/**
+ * @fileoverview MeetupHub page component for the Kinetic Arena application.
+ * Provides a real-time group chat experience for fans in the same stadium section.
+ * Features include persistent message history via localStorage, quick reaction
+ * buttons ("Quick Bantz"), squad member status tracking, and simulated bot replies.
+ */
 
-interface ChatMessage {
-  id: number;
-  sender: string;
-  text: string;
-  time: string;
-  isOwn: boolean;
-  avatar?: string;
-  color: string;
-}
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import type { ChatMessage } from '../types';
 
-const QUICK_BANTZ = ["How's that?!", "Wide ball mate", "Drinks! 🍻", "SIX! 🎉", "What a catch!", "LBW surely!"];
+/** Pre-defined quick message buttons for rapid fan interactions. */
+const QUICK_BANTZ = ["How's that?!", "Wide ball mate", "Drinks! 🍻", "SIX! 🎉", "What a catch!", "LBW surely!"] as const;
 
+/** Avatar URL for the "Dave" squad member. */
 const DAVE_AVATAR = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAq1jrEPgBvlDINgolyyZEx5v9L1ZQilHtsQmNzTUfAmimWqV_1ru2lpLtC5SE6Fw8D9_icBkn7V2hCx52RB8PklJp7Quzb5vZ3Rg8K5xPlUF7C0uub0VGtm_R1hbQkBBNVlG6bQ9GzUYt_Vj2yNtS2Y4tWkKqOks8Or0ScoNm9BVPt7fgIkfc8wJD7yC89vUcsXL1rD72hcC4MIEj9uRRLYZp8txClxQhyZdkOE8L-ntOjDvpZ1DlMEemK0MMqnllGdAtJU8A4HVc';
+
+/** Avatar URL for the "Sarah T." squad member. */
 const SARAH_AVATAR = 'https://lh3.googleusercontent.com/aida-public/AB6AXuC0eShQt8VmV1QgmLj5rFxzO6EyYM3Af6ZV6rP6UQq0wxEOJA7lEeVJAKqpChzmfR9Dw1KWW4nzcDQJT2DXbFhI0e9qkVS9K03RvT3czchsZN-3tECvkBouILZBoAdi_cgpCaRbiO8ZEfIcHuPJqIuwiMQuDZWq3O9Kf3X_BBmPOdUjpN_LwHsNC2uwoZRW91L3sqlrQktrMGrrS3hsU393TrACIliasiXbIGQpE4abfUSTWnraI8kN6khpOLbNG1is7pniwOohScQ';
 
-const BOT_REPLIES = [
+/** Pool of automated reply messages for simulating chat engagement. */
+const BOT_REPLIES: readonly string[] = [
   "Absolute scenes! 🤯",
   "That's going all the way!",
   "Need more pies from the concession stand 😂",
@@ -24,64 +28,119 @@ const BOT_REPLIES = [
   "My throat is gone from screaming!",
 ];
 
-export default function MeetupHub() {
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem('kinetic_chat');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [
-      { id: 1, sender: 'Dave', text: "Mate, that was never a no-ball. Umpire needs glasses! 👓", time: '8:42 PM', isOwn: false, avatar: DAVE_AVATAR, color: 'secondary' },
-      { id: 2, sender: 'You', text: "I'm going for another round. Who wants what? 🍻", time: '8:45 PM', isOwn: true, color: 'primary' },
-      { id: 3, sender: 'Sarah T.', text: "Get me a pie! I'm stuck in the merch line.", time: '8:47 PM', isOwn: false, avatar: SARAH_AVATAR, color: 'tertiary' },
-    ];
-  });
+/** Default seed messages displayed when the chat has no history. */
+const DEFAULT_MESSAGES: ChatMessage[] = [
+  { id: 1, sender: 'Dave', text: "Mate, that was never a no-ball. Umpire needs glasses! 👓", time: '8:42 PM', isOwn: false, avatar: DAVE_AVATAR, color: 'secondary' },
+  { id: 2, sender: 'You', text: "I'm going for another round. Who wants what? 🍻", time: '8:45 PM', isOwn: true, color: 'primary' },
+  { id: 3, sender: 'Sarah T.', text: "Get me a pie! I'm stuck in the merch line.", time: '8:47 PM', isOwn: false, avatar: SARAH_AVATAR, color: 'tertiary' },
+];
 
-  useEffect(() => {
-    localStorage.setItem('kinetic_chat', JSON.stringify(messages));
-  }, [messages]);
+/** Maximum number of characters allowed in a single chat message. */
+const MAX_MESSAGE_LENGTH = 500;
+
+/**
+ * Formats the current time into a localized time string suitable for chat timestamps.
+ *
+ * @returns A formatted time string like "8:42 PM".
+ */
+function getCurrentTimeString(): string {
+  return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+/**
+ * Creates a new ChatMessage object for the current user.
+ *
+ * @param text - The sanitized message text.
+ * @returns A new ChatMessage with `isOwn: true`.
+ */
+function createOwnMessage(text: string): ChatMessage {
+  return {
+    id: Date.now(),
+    sender: 'You',
+    text,
+    time: getCurrentTimeString(),
+    isOwn: true,
+    color: 'primary',
+  };
+}
+
+/**
+ * Creates a simulated bot reply message from a random squad member.
+ *
+ * @returns A new ChatMessage with `isOwn: false` from either Dave or Sarah.
+ */
+function createBotReply(): ChatMessage {
+  const isFromDave = Math.random() > 0.5;
+  return {
+    id: Date.now() + 1,
+    sender: isFromDave ? 'Dave' : 'Sarah T.',
+    text: BOT_REPLIES[Math.floor(Math.random() * BOT_REPLIES.length)],
+    time: getCurrentTimeString(),
+    isOwn: false,
+    avatar: isFromDave ? DAVE_AVATAR : SARAH_AVATAR,
+    color: isFromDave ? 'secondary' : 'tertiary',
+  };
+}
+
+/**
+ * MeetupHub renders the fan group chat and squad status interface.
+ * It provides a chat window with persistent message history, a squad
+ * member panel, "Quick Bantz" reaction buttons, and an over countdown timer.
+ *
+ * Key features:
+ * - Message persistence across navigation using `useLocalStorage`.
+ * - Input validation: empty or whitespace-only messages are rejected.
+ * - Character limit enforcement (500 chars) to prevent abuse.
+ * - Auto-scroll to latest message on new incoming/outgoing messages.
+ * - Simulated bot replies from squad members after a short delay.
+ * - Accessible form controls with ARIA attributes and keyboard support.
+ *
+ * @returns The rendered MeetupHub page component.
+ */
+export default function MeetupHub(): React.JSX.Element {
+  const [messages, setMessages] = useLocalStorage<ChatMessage[]>('kinetic_chat', DEFAULT_MESSAGES);
   const [inputText, setInputText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  /** Auto-scroll to the bottom whenever the message list changes. */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = (text: string) => {
-    if (!text.trim()) return;
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    const newMsg: ChatMessage = {
-      id: Date.now(),
-      sender: 'You',
-      text: text.trim(),
-      time: timeStr,
-      isOwn: true,
-      color: 'primary',
-    };
-    setMessages((prev) => [...prev, newMsg]);
-    setInputText('');
+  /**
+   * Sends a validated message and schedules a simulated bot reply.
+   * Rejects empty messages and enforces the character limit.
+   *
+   * @param text - The raw message text from the user.
+   */
+  const sendMessage = useCallback(
+    (text: string): void => {
+      const trimmed = text.trim();
+      if (!trimmed || trimmed.length > MAX_MESSAGE_LENGTH) return;
 
-    // Simulate a reply after a short delay
-    setTimeout(() => {
-      const replySender = Math.random() > 0.5 ? 'Dave' : 'Sarah T.';
-      const reply: ChatMessage = {
-        id: Date.now() + 1,
-        sender: replySender,
-        text: BOT_REPLIES[Math.floor(Math.random() * BOT_REPLIES.length)],
-        time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
-        isOwn: false,
-        avatar: replySender === 'Dave' ? DAVE_AVATAR : SARAH_AVATAR,
-        color: replySender === 'Dave' ? 'secondary' : 'tertiary',
-      };
-      setMessages((prev) => [...prev, reply]);
-    }, 1200 + Math.random() * 1500);
-  };
+      setMessages((prev) => [...prev, createOwnMessage(trimmed)]);
+      setInputText('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+      // Schedule a simulated bot reply after a realistic delay
+      const replyDelay = 1200 + Math.random() * 1500;
+      setTimeout(() => {
+        setMessages((prev) => [...prev, createBotReply()]);
+      }, replyDelay);
+    },
+    [setMessages]
+  );
+
+  /**
+   * Handles form submission for the chat input.
+   * Prevents default form behavior and delegates to sendMessage.
+   */
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     sendMessage(inputText);
   };
+
+  /** Calculates remaining characters for the input field. */
+  const remainingChars = MAX_MESSAGE_LENGTH - inputText.length;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
@@ -89,14 +148,14 @@ export default function MeetupHub() {
       <div className="lg:col-span-4 space-y-6">
         {/* Timer */}
         <div className="bg-surface-container rounded-xl p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-tertiary/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-tertiary/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" aria-hidden="true" />
           <h2 className="font-headline text-lg text-secondary mb-2 relative z-10">Next Over In</h2>
           <div className="flex items-end space-x-2 relative z-10">
             <span className="font-headline text-6xl font-black text-tertiary tracking-tighter drop-shadow-[0_0_12px_rgba(255,115,74,0.4)]">0:45</span>
             <span className="text-on-surface-variant font-medium pb-2">secs</span>
           </div>
-          <div className="w-full bg-surface-container-highest h-2 rounded-full mt-4 overflow-hidden">
-            <div className="bg-gradient-to-r from-tertiary to-tertiary-container h-full w-[25%] rounded-full animate-pulse"></div>
+          <div className="w-full bg-surface-container-highest h-2 rounded-full mt-4 overflow-hidden" role="progressbar" aria-valuenow={25} aria-valuemin={0} aria-valuemax={100}>
+            <div className="bg-gradient-to-r from-tertiary to-tertiary-container h-full w-[25%] rounded-full animate-pulse" />
           </div>
         </div>
 
@@ -108,8 +167,8 @@ export default function MeetupHub() {
           </div>
           <div className="space-y-4">
             <div className="flex items-center space-x-4 p-3 bg-surface-container-high rounded-lg relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
-              <img alt="Dave" className="w-12 h-12 rounded-full object-cover border-2 border-primary" src={DAVE_AVATAR} />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" aria-hidden="true" />
+              <img alt="Dave's avatar" className="w-12 h-12 rounded-full object-cover border-2 border-primary" src={DAVE_AVATAR} />
               <div className="flex-1">
                 <h3 className="font-body font-bold text-on-surface">Dave "The Sledge"</h3>
                 <p className="text-sm text-secondary-dim">Sec 402, Row G</p>
@@ -117,8 +176,8 @@ export default function MeetupHub() {
               <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'wght' 700" }}>local_bar</span>
             </div>
             <div className="flex items-center space-x-4 p-3 bg-surface-container-high rounded-lg relative overflow-hidden">
-              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
-              <img alt="Sarah" className="w-12 h-12 rounded-full object-cover border-2 border-primary" src={SARAH_AVATAR} />
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" aria-hidden="true" />
+              <img alt="Sarah's avatar" className="w-12 h-12 rounded-full object-cover border-2 border-primary" src={SARAH_AVATAR} />
               <div className="flex-1">
                 <h3 className="font-body font-bold text-on-surface">Sarah T.</h3>
                 <p className="text-sm text-secondary-dim">Concourse (Food)</p>
@@ -172,19 +231,19 @@ export default function MeetupHub() {
             <div>
               <h2 className="font-headline font-bold text-lg text-on-surface">Section 402 Mob</h2>
               <p className="text-xs text-primary-dim flex items-center">
-                <span className="w-2 h-2 rounded-full bg-primary inline-block mr-1 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-primary inline-block mr-1 animate-pulse" />
                 Live Sledging
               </p>
             </div>
           </div>
-          <button onClick={() => alert('Chat settings: Notifications are on.')} className="text-on-surface-variant hover:text-white transition-colors cursor-pointer">
+          <button onClick={() => alert('Chat settings: Notifications are on.')} className="text-on-surface-variant hover:text-white transition-colors cursor-pointer" aria-label="Chat settings">
             <span className="material-symbols-outlined">more_vert</span>
           </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 p-6 overflow-y-auto flex flex-col space-y-6 relative">
-          <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
+        <div className="flex-1 p-6 overflow-y-auto flex flex-col space-y-6 relative" role="log" aria-label="Chat messages" aria-live="polite">
+          <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center" aria-hidden="true">
             <span className="material-symbols-outlined text-[20rem]" style={{ fontVariationSettings: "'wght' 700" }}>sports_cricket</span>
           </div>
           {messages.map((msg) =>
@@ -202,7 +261,7 @@ export default function MeetupHub() {
               </div>
             ) : (
               <div key={msg.id} className="flex items-start max-w-[85%] relative z-10">
-                {msg.avatar && <img alt={msg.sender} className="w-8 h-8 rounded-full mt-1 mr-3 object-cover flex-shrink-0" src={msg.avatar} />}
+                {msg.avatar && <img alt={`${msg.sender}'s avatar`} className="w-8 h-8 rounded-full mt-1 mr-3 object-cover flex-shrink-0" src={msg.avatar} />}
                 <div>
                   <div className="flex items-baseline space-x-2 mb-1">
                     <span className={`font-bold text-sm text-${msg.color}`}>{msg.sender}</span>
@@ -225,10 +284,10 @@ export default function MeetupHub() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input */}
+        {/* Chat Input */}
         <form onSubmit={handleSubmit} className="p-4 bg-surface-container-highest/80 backdrop-blur-xl border-t border-surface-container-highest z-20">
           <div className="flex items-center space-x-2">
-            <button type="button" onClick={() => alert('Photo sharing coming soon!')} className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container-low cursor-pointer flex-shrink-0">
+            <button type="button" onClick={() => alert('Photo sharing coming soon!')} className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors hover:bg-surface-container-low cursor-pointer flex-shrink-0" aria-label="Attach photo">
               <span className="material-symbols-outlined">add_photo_alternate</span>
             </button>
             <div className="flex-1 relative">
@@ -238,15 +297,24 @@ export default function MeetupHub() {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
+                maxLength={MAX_MESSAGE_LENGTH}
+                aria-label="Type a message"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary hover:bg-primary-container transition-colors cursor-pointer"
+                disabled={!inputText.trim()}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary hover:bg-primary-container transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                aria-label="Send message"
               >
                 <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'wght' 700" }}>send</span>
               </button>
             </div>
           </div>
+          {inputText.length > 0 && (
+            <p className={`text-xs mt-1 text-right ${remainingChars < 50 ? 'text-tertiary' : 'text-on-surface-variant/50'}`}>
+              {remainingChars} characters remaining
+            </p>
+          )}
         </form>
       </div>
     </div>

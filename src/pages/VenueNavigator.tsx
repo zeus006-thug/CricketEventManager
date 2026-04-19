@@ -1,11 +1,14 @@
+/**
+ * @fileoverview VenueNavigator page component for the Kinetic Arena application.
+ * Renders an interactive stadium map with clickable location pins, floor-level
+ * switching, category-based venue filtering, and a searchable venue list panel.
+ * Enables fans to quickly locate food courts, restrooms, and stadium sections.
+ */
+
 import React, { useState } from 'react';
+import type { VenueFilter, VenueLocation } from '../types';
 
-interface VenueFilter {
-  id: string;
-  label: string;
-  icon: string;
-}
-
+/** Available filter categories for the venue list sidebar. */
 const FILTERS: VenueFilter[] = [
   { id: 'all', label: 'All', icon: '' },
   { id: 'ground', label: 'Ground', icon: 'stadium' },
@@ -13,14 +16,27 @@ const FILTERS: VenueFilter[] = [
   { id: 'stores', label: 'Stores', icon: 'storefront' },
 ];
 
-const FLOOR_LEVELS = ['L2', 'L1', 'G'];
+/** Available floor levels for the map view. */
+const FLOOR_LEVELS = ['L2', 'L1', 'G'] as const;
 
-export default function VenueNavigator() {
+/**
+ * VenueNavigator renders the interactive stadium map and venue directory.
+ * Features include:
+ * - Clickable map pins with tooltip labels and alert feedback.
+ * - Floor-level toggle buttons (L2, L1, Ground).
+ * - Category filter buttons with active state highlighting.
+ * - Real-time search filtering across venue names and details.
+ * - Empty state display when no results match the search query.
+ *
+ * @returns The rendered VenueNavigator page component.
+ */
+export default function VenueNavigator(): React.JSX.Element {
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeFloor, setActiveFloor] = useState('L2');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const venues = [
+  /** Static venue data. In production, this would be fetched from an API. */
+  const venues: VenueLocation[] = [
     { id: 1, name: 'Main Pitch', detail: 'Sectors 100 - 400', icon: 'stadium', color: 'primary', category: 'ground' },
     { id: 2, name: 'North Concourse Cafeteria', detail: 'Level 2, Near Sec 205', icon: 'fastfood', color: 'secondary', category: 'food' },
     { id: 3, name: 'Team Store', detail: 'Ground Floor, Gate B', icon: 'storefront', color: 'on-surface-variant', category: 'stores' },

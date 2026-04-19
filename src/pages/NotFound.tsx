@@ -1,7 +1,20 @@
+/**
+ * @fileoverview 404 Not Found page component for the Kinetic Arena application.
+ * Renders a visually engaging error page when users navigate to an invalid route.
+ * Provides a clear call-to-action to return to the main dashboard.
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export default function NotFound() {
+/**
+ * NotFound renders a themed 404 error page with a cricket-inspired "Ball Lost"
+ * message. Includes a hover animation on the 404 number and a prominent
+ * "Return to Pitch" navigation button.
+ *
+ * @returns The rendered 404 error page component.
+ */
+export default function NotFound(): React.JSX.Element {
   return (
     <div className="bg-background text-on-surface min-h-screen relative w-full overflow-hidden flex flex-col items-center justify-center p-6 text-center z-50">
       

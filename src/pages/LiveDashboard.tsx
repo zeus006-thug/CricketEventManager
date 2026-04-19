@@ -1,6 +1,24 @@
+/**
+ * @fileoverview LiveDashboard page component for the Kinetic Arena application.
+ * Displays real-time match statistics including score, run rates, batter/bowler
+ * performance cards, ball-by-ball over history, and an interactive Digital Wave
+ * fan engagement feature. Serves as the primary landing page after authentication.
+ */
+
 import React from 'react';
 
-export default function LiveDashboard() {
+/**
+ * LiveDashboard renders the main matchday analytics interface.
+ * Displays:
+ * - Hero score card with innings progress and win predictor.
+ * - Active batter stats with strike rates and ball counts.
+ * - Current bowler figures with economy rate.
+ * - Ball-by-ball over visualization with animated pending delivery.
+ * - Interactive "Digital Wave" fan sync feature with screen flash effect.
+ *
+ * @returns The rendered LiveDashboard page component.
+ */
+export default function LiveDashboard(): React.JSX.Element {
   return (
     <div className="space-y-8">
       {/* Score Hero */}

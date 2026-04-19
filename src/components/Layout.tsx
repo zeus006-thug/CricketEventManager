@@ -1,14 +1,19 @@
+/**
+ * @fileoverview Layout component for the Kinetic Arena application.
+ * Provides the application shell including a fixed desktop sidebar with
+ * navigation links, a mobile hamburger menu, a mobile bottom navigation bar,
+ * and a live score card. All authenticated pages are rendered within this
+ * layout via the React Router `<Outlet />` component.
+ */
+
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import type { NavItem } from '../types';
 
+/** URL for the user's GitHub profile avatar. */
 const AVATAR_URL = 'https://github.com/zeus006-thug.png';
 
-interface NavItem {
-  path: string;
-  label: string;
-  icon: string;
-}
-
+/** Navigation items displayed in both the sidebar and mobile bottom nav. */
 const NAV_ITEMS: NavItem[] = [
   { path: '/venue', label: 'Ground', icon: 'stadium' },
   { path: '/concessions', label: 'Order', icon: 'fastfood' },
@@ -16,7 +21,21 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/meetup', label: 'Squad', icon: 'groups' },
 ];
 
-export default function Layout() {
+/**
+ * Layout renders the persistent application shell around all authenticated pages.
+ * It uses a flex-based structure with a fixed sidebar on desktop (with a spacer div
+ * to prevent content overlap) and a bottom navigation bar on mobile.
+ *
+ * Features:
+ * - Fixed sidebar with active route highlighting on desktop.
+ * - Hamburger-driven mobile navigation drawer.
+ * - Mobile bottom nav bar with icon-based route links.
+ * - Live score card in the sidebar footer.
+ * - Profile avatar fetched from GitHub.
+ *
+ * @returns The rendered Layout shell component.
+ */
+export default function Layout(): React.JSX.Element {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname;

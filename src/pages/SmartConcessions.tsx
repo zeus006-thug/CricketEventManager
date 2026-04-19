@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+/**
+ * @fileoverview SmartConcessions page component for the Kinetic Arena application.
+ * Provides an interactive food ordering experience with a persistent shopping cart,
+ * category-based filtering, and a checkout modal. Cart state is synchronized with
+ * `localStorage` via the `useLocalStorage` custom hook so items survive navigation.
+ */
 
-interface FoodItem {
-  id: number;
-  name: string;
-  price: number;
-  description: string;
-  image: string;
-  badge?: string;
-  badgeColor?: string;
-}
+import React, { useState, useMemo } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import type { FoodItem, CartState } from '../types';
 
+/**
+ * Static menu data for the stadium concessions.
+ * In a production app, this would be fetched from a backend API.
+ */
 const MENU_ITEMS: FoodItem[] = [
   {
     id: 1, name: 'The Century Platter', price: 24,
@@ -30,46 +33,103 @@ const MENU_ITEMS: FoodItem[] = [
   },
 ];
 
-const CATEGORIES = ['All Items', 'Hot Food', 'Beverages', 'Snacks'];
+/** Available category filter options for menu items. */
+const CATEGORIES = ['All Items', 'Hot Food', 'Beverages', 'Snacks'] as const;
 
-export default function SmartConcessions() {
-  const [cart, setCart] = useState<Record<number, number>>(() => {
-    try {
-      const saved = localStorage.getItem('kinetic_cart');
-      return saved ? JSON.parse(saved) : {};
-    } catch {
-      return {};
-    }
-  });
+/**
+ * Adds an item to the cart by incrementing its quantity.
+ * If the item doesn't exist in the cart, it's initialized with quantity 1.
+ *
+ * @param cart - The current cart state.
+ * @param itemId - The ID of the item to add.
+ * @returns A new cart state with the updated quantity.
+ */
+function addItemToCart(cart: CartState, itemId: number): CartState {
+  return { ...cart, [itemId]: (cart[itemId] || 0) + 1 };
+}
 
-  useEffect(() => {
-    localStorage.setItem('kinetic_cart', JSON.stringify(cart));
-  }, [cart]);
+/**
+ * Removes one unit of an item from the cart.
+ * If the quantity reaches 0, the item is removed entirely from the cart.
+ *
+ * @param cart - The current cart state.
+ * @param itemId - The ID of the item to remove.
+ * @returns A new cart state with the updated quantity.
+ */
+function removeItemFromCart(cart: CartState, itemId: number): CartState {
+  const next = { ...cart };
+  if (next[itemId] > 1) {
+    next[itemId]--;
+  } else {
+    delete next[itemId];
+  }
+  return next;
+}
 
+/**
+ * Calculates the total number of all items currently in the cart.
+ *
+ * @param cart - The current cart state.
+ * @returns The sum of all item quantities.
+ */
+function calculateTotalItems(cart: CartState): number {
+  return Object.values(cart).reduce((sum, count) => sum + count, 0);
+}
+
+/**
+ * Calculates the total price of all items currently in the cart.
+ *
+ * @param cart - The current cart state.
+ * @param menuItems - The full menu to look up prices.
+ * @returns The total price in USD.
+ */
+function calculateTotalPrice(cart: CartState, menuItems: FoodItem[]): number {
+  return Object.entries(cart).reduce((sum, [id, count]) => {
+    const item = menuItems.find((m) => m.id === Number(id));
+    return sum + (item ? item.price * count : 0);
+  }, 0);
+}
+
+/**
+ * SmartConcessions renders the stadium food ordering interface.
+ * It displays a filterable menu grid, a persistent shopping cart (via localStorage),
+ * and a checkout modal for order confirmation.
+ *
+ * Key features:
+ * - Cart persistence across page navigation using `useLocalStorage`.
+ * - Memoized price/quantity computations for performance.
+ * - Responsive layout with mobile cart bar and desktop floating action button.
+ * - Checkout modal with order summary and simulated order placement.
+ *
+ * @returns The rendered SmartConcessions page component.
+ */
+export default function SmartConcessions(): React.JSX.Element {
+  const [cart, setCart] = useLocalStorage<CartState>('kinetic_cart', {});
   const [activeCategory, setActiveCategory] = useState('All Items');
   const [showCheckout, setShowCheckout] = useState(false);
 
-  const addToCart = (itemId: number) => {
-    setCart((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+  /** Memoized total item count to avoid recalculating on every render. */
+  const totalItems = useMemo(() => calculateTotalItems(cart), [cart]);
+
+  /** Memoized total price to avoid recalculating on every render. */
+  const totalPrice = useMemo(() => calculateTotalPrice(cart, MENU_ITEMS), [cart]);
+
+  /** Handles adding an item to the cart. */
+  const handleAddToCart = (itemId: number): void => {
+    setCart((prev) => addItemToCart(prev, itemId));
   };
 
-  const removeFromCart = (itemId: number) => {
-    setCart((prev) => {
-      const next = { ...prev };
-      if (next[itemId] > 1) {
-        next[itemId]--;
-      } else {
-        delete next[itemId];
-      }
-      return next;
-    });
+  /** Handles removing an item from the cart. */
+  const handleRemoveFromCart = (itemId: number): void => {
+    setCart((prev) => removeItemFromCart(prev, itemId));
   };
 
-  const totalItems = Object.values(cart).reduce((s, c) => s + c, 0);
-  const totalPrice = Object.entries(cart).reduce((s, [id, count]) => {
-    const item = MENU_ITEMS.find((m) => m.id === Number(id));
-    return s + (item ? item.price * count : 0);
-  }, 0);
+  /** Handles placing the order: clears cart and shows confirmation. */
+  const handlePlaceOrder = (): void => {
+    setCart({});
+    setShowCheckout(false);
+    alert('🎉 Order placed! Head to Counter #12 in 15 minutes.');
+  };
 
   return (
     <div className="flex flex-col gap-8">
@@ -90,7 +150,7 @@ export default function SmartConcessions() {
 
       {/* Pickup Banner */}
       <section className="relative rounded-[2rem] overflow-hidden bg-surface-container-highest p-6 md:p-10 border border-outline-variant/15 flex flex-col md:flex-row items-center gap-8 justify-between">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" aria-hidden="true" />
         <div className="relative z-10 flex flex-col gap-4">
           <div className="flex items-center gap-2 text-primary font-bold">
             <span className="material-symbols-outlined">location_on</span>
@@ -111,11 +171,13 @@ export default function SmartConcessions() {
       </section>
 
       {/* Category Filters */}
-      <section className="flex overflow-x-auto pb-4 hide-scrollbar gap-3 -mx-4 px-4 md:mx-0 md:px-0">
+      <section className="flex overflow-x-auto pb-4 hide-scrollbar gap-3 -mx-4 px-4 md:mx-0 md:px-0" role="tablist" aria-label="Menu categories">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
+            role="tab"
+            aria-selected={activeCategory === cat}
             className={`px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap flex-shrink-0 transition-all cursor-pointer ${
               activeCategory === cat
                 ? 'bg-secondary text-on-secondary scale-105'
@@ -132,10 +194,10 @@ export default function SmartConcessions() {
         {MENU_ITEMS.map((item) => {
           const qty = cart[item.id] || 0;
           return (
-            <div key={item.id} className="group relative rounded-3xl overflow-hidden bg-surface-container-low flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
+            <article key={item.id} className="group relative rounded-3xl overflow-hidden bg-surface-container-low flex flex-col h-full transform transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
               <div className="h-48 relative overflow-hidden">
-                <img alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={item.image} />
-                <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+                <img alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" src={item.image} loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent" aria-hidden="true" />
                 {item.badge && (
                   <div className={`absolute top-4 right-4 glass-panel px-3 py-1 rounded-full text-xs font-bold text-${item.badgeColor} flex items-center gap-1`}>
                     <span className="material-symbols-outlined text-[14px]">local_fire_department</span>
@@ -152,23 +214,26 @@ export default function SmartConcessions() {
                 <div className="mt-auto pt-4">
                   {qty === 0 ? (
                     <button
-                      onClick={() => addToCart(item.id)}
+                      onClick={() => handleAddToCart(item.id)}
+                      aria-label={`Add ${item.name} to order`}
                       className="w-full bg-surface-container-highest hover:bg-primary hover:text-on-primary text-primary font-bold py-3 rounded-xl transition-colors duration-300 flex justify-center items-center gap-2 cursor-pointer"
                     >
                       <span className="material-symbols-outlined">add_shopping_cart</span>
                       Add to Order
                     </button>
                   ) : (
-                    <div className="flex items-center justify-between bg-primary/10 rounded-xl p-1">
+                    <div className="flex items-center justify-between bg-primary/10 rounded-xl p-1" role="group" aria-label={`${item.name} quantity controls`}>
                       <button
-                        onClick={() => removeFromCart(item.id)}
+                        onClick={() => handleRemoveFromCart(item.id)}
+                        aria-label={`Decrease ${item.name} quantity`}
                         className="w-10 h-10 rounded-lg bg-surface-container-highest text-primary hover:bg-primary hover:text-on-primary flex items-center justify-center font-bold text-xl transition-colors cursor-pointer"
                       >
                         −
                       </button>
-                      <span className="font-headline font-bold text-xl text-primary">{qty}</span>
+                      <span className="font-headline font-bold text-xl text-primary" aria-live="polite">{qty}</span>
                       <button
-                        onClick={() => addToCart(item.id)}
+                        onClick={() => handleAddToCart(item.id)}
+                        aria-label={`Increase ${item.name} quantity`}
                         className="w-10 h-10 rounded-lg bg-primary text-on-primary hover:bg-primary-container flex items-center justify-center font-bold text-xl transition-colors cursor-pointer"
                       >
                         +
@@ -177,7 +242,7 @@ export default function SmartConcessions() {
                   )}
                 </div>
               </div>
-            </div>
+            </article>
           );
         })}
       </section>
@@ -187,6 +252,7 @@ export default function SmartConcessions() {
         <div className="hidden md:flex fixed bottom-8 right-8 z-40">
           <button
             onClick={() => setShowCheckout(true)}
+            aria-label={`View cart with ${totalItems} items`}
             className="bg-primary text-on-primary w-16 h-16 rounded-full flex items-center justify-center shadow-[0_8px_32px_rgba(165,255,184,0.3)] hover:scale-105 transition-transform relative cursor-pointer"
           >
             <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'wght' 700" }}>shopping_cart</span>
@@ -220,9 +286,9 @@ export default function SmartConcessions() {
 
       {/* Checkout Modal */}
       {showCheckout && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setShowCheckout(false)}>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="checkout-title" onClick={() => setShowCheckout(false)}>
           <div className="bg-surface-container rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h2 className="font-headline text-2xl font-bold text-on-surface mb-6 flex items-center gap-2">
+            <h2 id="checkout-title" className="font-headline text-2xl font-bold text-on-surface mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">receipt_long</span>
               Your Order
             </h2>
@@ -253,7 +319,7 @@ export default function SmartConcessions() {
                 Continue Shopping
               </button>
               <button
-                onClick={() => { setCart({}); setShowCheckout(false); alert('🎉 Order placed! Head to Counter #12 in 15 minutes.'); }}
+                onClick={handlePlaceOrder}
                 className="flex-1 py-3 rounded-xl bg-primary text-on-primary font-bold hover:bg-primary-container transition-colors cursor-pointer"
               >
                 Place Order
