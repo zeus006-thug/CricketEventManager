@@ -36,10 +36,10 @@ export default function TicketLogin() {
 </div>
 
 <div className="flex flex-col gap-2 relative group">
-<label className="font-label text-sm font-medium text-secondary" htmlFor="ticket">Ticket ID / Reference</label>
+<label className="font-label text-sm font-medium text-secondary" htmlFor="password">Ticket ID / Password</label>
 <div className="relative flex items-center">
-<span className="material-symbols-outlined absolute left-4 text-on-surface-variant group-focus-within:text-primary transition-colors">confirmation_number</span>
-<input className="w-full bg-surface-container-lowest text-on-surface font-body text-base px-12 py-4 rounded-lg border-b-2 border-transparent focus:border-b-primary outline-none transition-all placeholder:text-on-surface-variant/50 uppercase" id="ticket" placeholder="e.g. KA-8892-XT" type="text"/>
+<span className="material-symbols-outlined absolute left-4 text-on-surface-variant group-focus-within:text-primary transition-colors">lock</span>
+<input className="w-full bg-surface-container-lowest text-on-surface font-body text-base px-12 py-4 rounded-lg border-b-2 border-transparent focus:border-b-primary outline-none transition-all placeholder:text-on-surface-variant/50" id="password" name="password" placeholder="Enter Reference / Password" type="password" autoComplete="current-password"/>
 </div>
 </div>
 
