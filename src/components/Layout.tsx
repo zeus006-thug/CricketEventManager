@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
-const AVATAR_URL = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAm0rq_DNpECtw2NcmZdem7_PXJhWRsQF-aHxxCfqNjPiDPndHkQ5QBzprWbxmTuVs6lTfbsSjJHlaZCmSA76YnLEU9RX01wAsFoln7ua7Pc37DLSLNabIZzVlzOqoVAulgFVXGTN8mXxcG1X3mFH_wv0gmXC7VRf_aq3pShvQy9HbLHuED20CvUPjLmhh6S3OuuUTCFUFCvyjgQ0wJBpMI_LdklZDoctz7ucUhbXhvwkG6J_4tRBciI256M5lJwS1gxPrGDKm0XqI';
+const AVATAR_URL = 'https://github.com/zeus006-thug.png';
 
 interface NavItem {
   path: string;
@@ -26,6 +26,14 @@ export default function Layout() {
       
       {/* ===== DESKTOP SIDEBAR (fixed) ===== */}
       <nav className="hidden md:flex h-screen w-72 flex-col fixed left-0 top-0 bg-[#0d0f0e] shadow-2xl z-40 bg-gradient-to-r from-[#1a1c1b] to-transparent pt-12 pb-8" aria-label="Main navigation">
+        {/* App Logo */}
+        <div className="px-8 mt-2 mb-8 hidden md:block">
+          <h1 className="font-headline uppercase tracking-widest font-black text-2xl italic text-[#a5ffb8] drop-shadow-[0_0_8px_rgba(165,255,184,0.5)] flex items-center gap-2">
+            <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: "'wght' 700" }}>sports_cricket</span>
+            KINETIC ARENA
+          </h1>
+        </div>
+
         {/* User Profile */}
         <div className="px-8 mb-8 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary flex-shrink-0">
@@ -94,7 +102,8 @@ export default function Layout() {
               {isMobileMenuOpen ? 'close' : 'menu'}
             </span>
           </button>
-          <h1 className="font-headline uppercase tracking-widest font-black text-2xl italic text-[#a5ffb8] drop-shadow-[0_0_8px_rgba(165,255,184,0.5)]">
+          <h1 className="font-headline uppercase tracking-widest font-black text-xl italic text-[#a5ffb8] drop-shadow-[0_0_8px_rgba(165,255,184,0.5)] flex items-center gap-2">
+            <span className="material-symbols-outlined text-2xl" style={{ fontVariationSettings: "'wght' 700" }}>sports_cricket</span>
             KINETIC ARENA
           </h1>
           <div className="w-10 h-10 rounded-full overflow-hidden border border-primary flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => alert("Profile Settings: MVP FAN\nSection: 402")}>

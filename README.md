@@ -1,73 +1,66 @@
-# React + TypeScript + Vite
+# 🏟️ Kinetic Arena
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Kinetic Arena](https://cricketeventmanager.web.app/favicon.svg)
 
-Currently, two official plugins are available:
+**Kinetic Arena** is a next-generation matchday companion web application tailored for an unparalleled stadium experience. This project was built rapidly as a submission for the **PromptWars AI Vibecoding Challenge**, focusing on AI-assisted workflows to generate a fully responsive, highly interactive, and visually stunning React single-page application.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+🔗 **Live Deployment:** [Kinetic Arena Live](https://cricketeventmanager.web.app)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Features
 
-## Expanding the ESLint configuration
+*   📈 **Live Dashboard & Analytics:** Real-time score tracking, live striker rate, and a dynamic win predictor for an immersive match feel.
+*   🗺️ **Interactive Venue Navigator:** A fully responsive live map interface allowing fans to pinpoint sections, food courts, and washrooms with dynamic filtering.
+*   🍔 **Smart Concessions:** "Skip the queue" with a functional, state-driven in-app checkout and cart system.
+*   📱 **Digital Fan Wave (Syncer):** A unique, interactive "Sync Device Now" experience allowing fans to simulate syncing their phone flashlights with stadium events.
+*   💬 **Meetup Hub & Chat:** Connect with fans using "Quick Bantz" interactive buttons to easily coordinate meetups and hype the crowd.
+*   🎨 **Premium Aesthetic Shell:** Built with a fully custom, fixed-sidebar layout on desktop and a bottom-nav overlay on mobile, perfectly managing space without overlap, utilizing robust CSS flexbox paradigms.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🛠️ Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+*   **Frontend:** React 18, TypeScript, Vite
+*   **Styling:** Tailwind CSS v4 (with custom CSS tokens)
+*   **Routing:** React Router DOM (v6)
+*   **Icons:** Google Material Symbols
+*   **Deployment:** Firebase Hosting
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🏃‍♂️ Running Locally
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+To run this project on your local machine:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/zeus006-thug/CricketEventManager.git
+   cd CricketEventManager
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+---
+
+## 💡 The PromptWars Vibecoding Journey
+
+This application was developed comprehensively using an AI Agent workflow. Special attention was placed on:
+1. **Iterative Refactoring:** Transforming static HTML mockups into deeply functional React components.
+2. **Layout Consistency:** Solving intricate CSS padding, overflow, and component-sharing issues for a flawless experience across mobile, tablet, and desktop viewports.
+3. **State Management:** Tracking cart items, chat messages, and interactive UI states using React hooks.
+
+We hope you enjoy the Kinetic Arena experience!
